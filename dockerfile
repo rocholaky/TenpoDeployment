@@ -1,31 +1,33 @@
-# Use a Python base image
 FROM python:3.10-slim
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy pyproject.toml and uv.lock files
+# Copy dependency files early to leverage Docker cache
 COPY pyproject.toml .
-COPY uv.lock . 
+COPY uv.lock .
 
-# Install uv and git, and clean up apt lists
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends git \
-    && pip install uv \
-    && rm -rf /var/lib/apt/lists/*
+# 1. Update APT and install system tools (curl, certs only)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates
 
-# Use uv to install dependencies based on pyproject.toml
+RUN python -m pip install --upgrade pip
+
+# 2. Install uv
+RUN pip install uv
+
+# 5. Install Python dependencies with uv
 RUN uv sync
 
-COPY . . 
+# 6. Copy application code
+COPY api/ api/
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
-# Expose the port your application will run on
+# Expose the port
 EXPOSE 8080
 
-# Command to run your Uvicorn application
-# Use uv run directly to ensure uvicorn runs within the uv environment
-CMD ["sh", "-c", "uv run uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+# Run the app
+CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
