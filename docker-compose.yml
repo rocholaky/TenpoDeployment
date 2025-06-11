@@ -1,0 +1,14 @@
+services:
+  double-model-api:
+    build:
+      context: .
+    image: double-model-api
+    container_name: double-model-api
+    volumes:
+      - ./api:/app/api
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
