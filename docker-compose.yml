@@ -5,9 +5,9 @@ services:
     image: double-model-api
     container_name: double-model-api
     volumes:
-      - ./api:/app
+      - ./api:/app/api
     ports:
-      - "8000:8080"
+      - "8080:8080"
     env_file:
       - .env
     stdin_open: true
