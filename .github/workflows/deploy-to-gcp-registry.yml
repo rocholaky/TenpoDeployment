@@ -17,6 +17,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ vars.PROJECT_ID  }}
+          
       - name: Authenticate service account
         uses: google-github-actions/auth@v2
         with:
