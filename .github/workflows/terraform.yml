@@ -47,7 +47,7 @@ jobs:
           echo "TF_VAR_cloud_run_sa_email=$TF_VAR_cloud_run_sa_email"
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -upgrade
         working-directory: ./cloudrun-terraform
       
       - name: Terraform Plan
