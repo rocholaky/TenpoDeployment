@@ -1,12 +1,12 @@
 name: deploy-to-gcp-with-terraform
 
 on:
-  push:
-    branches:
-      - main
+  #push:
+  #  branches:
+  #    - main
   workflow_dispatch:
 
-  
+
 jobs:
   deploy-to-cloud-run:
     needs: build-and-push
