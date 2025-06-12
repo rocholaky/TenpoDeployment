@@ -1,10 +1,16 @@
 terraform {
+  backend "gcs" {
+    bucket = "terraform-state-bucket-api-double-api"
+    prefix = "terraform/state"
+  }
+
   required_providers {
     google = {
       source  = "hashicorp/google"
       version = "~> 6.39"
     }
   }
+
   required_version = ">= 1.3"
 }
 
