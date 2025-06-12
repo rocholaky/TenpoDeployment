@@ -18,6 +18,7 @@ resource "google_cloud_run_v2_service" "api_cloud_run" {
   location = var.region
 
   template {
+    service_account = var.cloud_run_sa_email
     containers {
       image = var.image_url
     }
