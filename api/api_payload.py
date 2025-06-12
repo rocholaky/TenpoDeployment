@@ -23,3 +23,4 @@ class PredictionBody(BaseModel):
         if not all(isinstance(i, float) for i in v):
             raise ValueError("All inputs must be floats.")
         return v
+        return v
