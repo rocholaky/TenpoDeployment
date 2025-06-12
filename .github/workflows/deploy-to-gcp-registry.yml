@@ -5,7 +5,7 @@ on:
     branches:
       - main
   workflow_dispatch: # remove later as it is for testing purposes
-
+ 
 jobs: 
     build-and-push: 
         runs-on: ubuntu-latest
@@ -27,7 +27,7 @@ jobs:
           - name: Configure Docker to use Google Artifact Registry
             run: |
                 gcloud auth configure-docker ${{vars.GCP_REGION}}-docker.pkg.dev
-
+                
           - name: Build and push double api image
             run: |
                 TIMESTAMP=$(date +"%d%m%Y%H%M")
