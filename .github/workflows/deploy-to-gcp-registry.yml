@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-      - dev
-
+  workflow_dispatch: # remove later as it is for testing purposes
+ 
 jobs: 
     build-and-push: 
         runs-on: ubuntu-latest
@@ -27,14 +27,14 @@ jobs:
           - name: Configure Docker to use Google Artifact Registry
             run: |
                 gcloud auth configure-docker ${{vars.GCP_REGION}}-docker.pkg.dev
-
-          - name: Build and push router image
+                
+          - name: Build and push double api image
             run: |
                 TIMESTAMP=$(date +"%d%m%Y%H%M")
                 IMAGE="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:$TIMESTAMP"
                 IMAGE_LATEST="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{steps.set_repo.outputs.TARGET_REPO}}/double_api:latest"
                 echo "Building image: $IMAGE"
-                docker build -t $IMAGE -f Dockerfile.router .
+                docker build -t $IMAGE .
                 docker tag $IMAGE $IMAGE_LATEST
                 docker push $IMAGE
                 docker push $IMAGE_LATEST
