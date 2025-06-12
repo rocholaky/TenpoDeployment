@@ -21,3 +21,8 @@ venv/
 # OS files
 .DS_Store
 Thumbs.db
+# test
+tests/*
+
+# terraform: 
+cloudrun-terraform/*

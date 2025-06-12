@@ -1,42 +1,36 @@
 name: deploy-to-gcp-registry
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch: # remove later as it is for testing purposes
- 
+  #push:
+  #  branches:
+  #    - main
+  workflow_dispatch:
+
 jobs: 
-    build-and-push: 
-        runs-on: ubuntu-latest
-        environment: develop  
-        steps:
-          - name: Checkout code
-            uses: actions/checkout@v4
-
-          - name: Set up Cloud SDK
-            uses: google-github-actions/setup-gcloud@v2
-            with:
-                project_id: ${{ vars.PROJECT_ID  }}
-                
-          - name: Authenticate service account
-            uses: google-github-actions/auth@v2
-            with:
-                credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-
-          - name: Configure Docker to use Google Artifact Registry
-            run: |
-                gcloud auth configure-docker ${{vars.GCP_REGION}}-docker.pkg.dev
-                
-          - name: Build and push double api image
-            run: |
-                TIMESTAMP=$(date +"%d%m%Y%H%M")
-                IMAGE="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:$TIMESTAMP"
-                IMAGE_LATEST="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:latest"
-                echo "Building image: $IMAGE"
-                docker build -t $IMAGE .
-                docker tag $IMAGE $IMAGE_LATEST
-                docker push $IMAGE
-                docker push $IMAGE_LATEST
-
-
+  build-and-push: 
+    runs-on: ubuntu-latest
+    environment: develop  
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.PROJECT_ID  }}
+      - name: Authenticate service account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      - name: Configure Docker to use Google Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{vars.GCP_REGION}}-docker.pkg.dev
+      - name: Build and push double api image
+        run: |
+          TIMESTAMP=$(date +"%d%m%Y%H%M")
+          IMAGE="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:$TIMESTAMP"
+          IMAGE_LATEST="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:latest"
+          echo "Building image: $IMAGE"
+          docker build -t $IMAGE .
+          docker tag $IMAGE $IMAGE_LATEST
+          docker push $IMAGE
+          docker push $IMAGE_LATEST
