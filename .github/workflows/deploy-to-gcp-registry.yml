@@ -1,10 +1,10 @@
 name: deploy-to-gcp-registry
 
 on:
-  #push:
-  #  branches:
-  #    - main
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  #workflow_dispatch:
 
 jobs: 
   build-and-push: 
@@ -17,6 +17,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ vars.PROJECT_ID  }}
+          
       - name: Authenticate service account
         uses: google-github-actions/auth@v2
         with:
@@ -34,3 +35,56 @@ jobs:
           docker tag $IMAGE $IMAGE_LATEST
           docker push $IMAGE
           docker push $IMAGE_LATEST
+  
+  deploy-to-cloud-run:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: develop
+
+    env:
+      TF_VAR_project_id: ${{ vars.PROJECT_ID }}
+      TF_VAR_region: ${{ vars.GCP_REGION}}
+      TF_VAR_service_name: ${{ vars.service_name }}
+      TF_VAR_image_url: ${{ vars.image_url }}
+      TF_VAR_cloud_run_sa_email: ${{ vars.cloud_run_sa_email }} 
+      TF_VAR_gcp_credentials: ${{ secrets.GCP_CREDENTIALS }} 
+
+    steps:
+      - name: Checkout Terraform code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.PROJECT_ID  }}
+
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      
+      - name: Print Terraform variables (non-secrets)
+        run: |
+          echo "TF_VAR_project_id=$TF_VAR_project_id"
+          echo "TF_VAR_region=$TF_VAR_region"
+          echo "TF_VAR_service_name=$TF_VAR_service_name"
+          echo "TF_VAR_image_url=$TF_VAR_image_url"
+          echo "TF_VAR_cloud_run_sa_email=$TF_VAR_cloud_run_sa_email"
+
+      - name: Terraform Init
+        run: terraform init -upgrade
+        working-directory: ./cloudrun-terraform
+      
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        working-directory: ./cloudrun-terraform
+
+      - name: Terraform Apply
+        env: 
+          TF_LOG: DEBUG
+        run: terraform apply -auto-approve
+        working-directory: ./cloudrun-terraform
+
