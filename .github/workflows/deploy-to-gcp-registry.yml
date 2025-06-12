@@ -4,68 +4,63 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: 
-
+  workflow_dispatch:
 
 jobs: 
-    build-and-push: 
-        runs-on: ubuntu-latest
-        environment: develop  
-        steps:
-          - name: Checkout code
-            uses: actions/checkout@v4
+  build-and-push: 
+    runs-on: ubuntu-latest
+    environment: develop  
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.PROJECT_ID  }}
+      - name: Authenticate service account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      - name: Configure Docker to use Google Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{vars.GCP_REGION}}-docker.pkg.dev
+      - name: Build and push double api image
+        run: |
+          TIMESTAMP=$(date +"%d%m%Y%H%M")
+          IMAGE="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:$TIMESTAMP"
+          IMAGE_LATEST="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:latest"
+          echo "Building image: $IMAGE"
+          docker build -t $IMAGE .
+          docker tag $IMAGE $IMAGE_LATEST
+          docker push $IMAGE
+          docker push $IMAGE_LATEST
 
-          - name: Set up Cloud SDK
-            uses: google-github-actions/setup-gcloud@v2
-            with:
-                project_id: ${{ vars.PROJECT_ID  }}
-                
-          - name: Authenticate service account
-            uses: google-github-actions/auth@v2
-            with:
-                credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+  deploy-to-cloud-run:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: develop
 
-          - name: Configure Docker to use Google Artifact Registry
-            run: |
-                gcloud auth configure-docker ${{vars.GCP_REGION}}-docker.pkg.dev
-                
-          - name: Build and push double api image
-            run: |
-                TIMESTAMP=$(date +"%d%m%Y%H%M")
-                IMAGE="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:$TIMESTAMP"
-                IMAGE_LATEST="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:latest"
-                echo "Building image: $IMAGE"
-                docker build -t $IMAGE .
-                docker tag $IMAGE $IMAGE_LATEST
-                docker push $IMAGE
-                docker push $IMAGE_LATEST
+    env:
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      TF_VAR_region: ${{ secrets.GCP_REGION }}
+      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
 
+    steps:
+      - name: Checkout Terraform code
+        uses: actions/checkout@v4
 
-    deploy-to-cloud-run:
-      needs: build-and-push
-      runs-on: ubuntu-latest
-      environment: develop
-      
-      env:
-        TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
-        TF_VAR_region: ${{ secrets.GCP_REGION }}
-        GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-      steps:
-        - name: Checkout Terraform code
-          uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-        - name: Setup Terraform
-          uses: hashicorp/setup-terraform@v2
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ env.GCP_CREDENTIALS }}
 
-        - name: Authenticate GCP
-          uses: google-github-actions/auth@v2
-          with:
-            credentials_json: ${{ env.GCP_CREDENTIALS }}
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./cloudrun-terraform
 
-        - name: Terraform Init
-          run: terraform init
-          working-directory: ./cloudrun-terraform
-
-        - name: Terraform Apply
-          run: terraform apply -auto-approve
-          working-directory: ./cloudrun-terraform
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./cloudrun-terraform
