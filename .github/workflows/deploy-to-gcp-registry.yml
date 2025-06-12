@@ -34,7 +34,7 @@ jobs:
                 IMAGE="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:$TIMESTAMP"
                 IMAGE_LATEST="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{steps.set_repo.outputs.TARGET_REPO}}/double_api:latest"
                 echo "Building image: $IMAGE"
-                docker build -t $IMAGE -f Dockerfile.router .
+                docker build -t $IMAGE .
                 docker tag $IMAGE $IMAGE_LATEST
                 docker push $IMAGE
                 docker push $IMAGE_LATEST
