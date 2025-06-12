@@ -14,8 +14,8 @@ jobs:
     environment: develop
 
     env:
-      TF_VAR_project_id: ${{ vars.project_id }}
-      TF_VAR_region: ${{ vars.region }}
+      TF_VAR_project_id: ${{ vars.PROJECT_ID }}
+      TF_VAR_region: ${{ vars.GCP_REGION}}
       TF_VAR_service_name: ${{ vars.service_name }}
       TF_VAR_image_url: ${{ vars.image_url }}
       TF_VAR_cloud_run_sa_email: ${{ vars.cloud_run_sa_email }}  
@@ -30,7 +30,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: ${{ vars.project_id  }}
+          project_id: ${{ vars.PROJECT_ID  }}
 
       - name: Authenticate GCP
         uses: google-github-actions/auth@v2
@@ -47,6 +47,10 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        working-directory: ./cloudrun-terraform
+      
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
         working-directory: ./cloudrun-terraform
 
       - name: Terraform Apply
