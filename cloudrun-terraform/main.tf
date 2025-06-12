@@ -24,11 +24,6 @@ resource "google_cloud_run_v2_service" "api_cloud_run" {
       image = var.image_url
     }
   }
-
-  traffic {
-    percent         = 100
-    latest_revision = true
-  }
 }
 
 resource "google_cloud_run_service_iam_member" "invoker" {
