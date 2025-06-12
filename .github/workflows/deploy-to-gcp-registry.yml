@@ -28,7 +28,7 @@ jobs:
             run: |
                 gcloud auth configure-docker ${{vars.GCP_REGION}}-docker.pkg.dev
 
-          - name: Build and push router image
+          - name: Build and push double api image
             run: |
                 TIMESTAMP=$(date +"%d%m%Y%H%M")
                 IMAGE="${{vars.GCP_REGION}}-docker.pkg.dev/${{vars.PROJECT_ID}}/${{vars.REPOSITORY}}/double_api:$TIMESTAMP"
