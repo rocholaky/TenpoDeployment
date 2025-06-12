@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.0"
+      version = "~> 6.39"
     }
   }
   required_version = ">= 1.3"
@@ -19,12 +19,17 @@ resource "google_cloud_run_v2_service" "api_cloud_run" {
 
   template {
     service_account = var.cloud_run_sa_email
+
     containers {
       image = var.image_url
     }
   }
-}
 
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+}
 
 resource "google_cloud_run_service_iam_member" "invoker" {
   location = var.region
@@ -32,5 +37,5 @@ resource "google_cloud_run_service_iam_member" "invoker" {
   service  = google_cloud_run_v2_service.api_cloud_run.name
 
   role   = "roles/run.invoker"
-  member = "allUsers" # Change to a specific service account if needed
+  member = "allUsers"
 }
