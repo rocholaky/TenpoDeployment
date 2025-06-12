@@ -23,10 +23,6 @@ resource "google_cloud_run_v2_service" "api_cloud_run" {
       image = var.image_url
     }
   }
-
-  traffic {
-    percent         = 100
-  }
 }
 
 
