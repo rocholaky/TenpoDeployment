@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy-to-cloud-run:
-    needs: build-and-push
+    #needs: build-and-push
     runs-on: ubuntu-latest
     environment: develop
 
