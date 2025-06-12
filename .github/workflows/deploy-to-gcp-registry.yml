@@ -87,3 +87,4 @@ jobs:
           TF_LOG: DEBUG
         run: terraform apply -auto-approve
         working-directory: ./cloudrun-terraform
+
